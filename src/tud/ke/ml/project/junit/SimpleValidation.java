@@ -37,7 +37,8 @@ public class SimpleValidation {
 		ArffLoader loader = new ArffLoader();
 		Instances instances;
 		
-		loader.setFile(new File("data/contact-lenses.arff"));
+		//loader.setFile(new File("data/contact-lenses.arff"));
+		loader.setFile(new File("data/credit-g.arff"));
 		instances = loader.getDataSet();
 		instances.setClassIndex(instances.numAttributes()-1);
 		data.add(instances);
