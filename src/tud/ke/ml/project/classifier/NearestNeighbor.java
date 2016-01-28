@@ -187,7 +187,7 @@ public class NearestNeighbor extends ANearestNeighbor implements Serializable {
 				if (attributeValue1 instanceof Double) {
 					distance += Math.abs((Double) attributeValue1 - (Double) attributeValue2);
 				} else if (attributeValue1 instanceof String) {
-					distance += (String) attributeValue1 == (String) attributeValue2 ? 0.0 : 1.0;
+					distance += attributeValue1.equals(attributeValue2) ? 0.0 : 1.0;
 				}
 			}
 		}
@@ -204,9 +204,9 @@ public class NearestNeighbor extends ANearestNeighbor implements Serializable {
 				Object attributeValue1 = instance1.get(i);
 				Object attributeValue2 = instance2.get(i);
 				if (attributeValue1 instanceof Double) {
-					distance += Math.pow(Math.abs((Double) attributeValue1 - (Double) attributeValue2), 2);
+					distance += Math.pow(((Double) attributeValue1 - (Double) attributeValue2), 2);
 				} else if (attributeValue1 instanceof String) {
-					distance += (String) attributeValue1 == (String) attributeValue2 ? 0.0 : 1.0;
+					distance += attributeValue1.equals(attributeValue2) ? 0.0 : 1.0;
 				}
 			}
 		}
@@ -236,8 +236,6 @@ public class NearestNeighbor extends ANearestNeighbor implements Serializable {
 					} else if ((double) attribute > maxAttributes[i]) {
 						maxAttributes[i] = (double) attribute;
 					}
-				} else {
-					// error
 				}
 			}
 		}
