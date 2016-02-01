@@ -48,16 +48,17 @@ public class SimpleRun {
 		filterTest.setPercentage(percentageSplit);	
 		filterTrain.setInputFormat(data);
 		filterTest.setInputFormat(data);
-		System.out.println(data.numInstances());
-		System.out.println(Filter.useFilter(data, filterTrain).numInstances());
-		System.out.println(Filter.useFilter(data, filterTest).numInstances());
+//		System.out.println(data.numInstances());
+//		System.out.println(Filter.useFilter(data, filterTrain).numInstances());
+//		System.out.println(Filter.useFilter(data, filterTest).numInstances());
 	}
 
 	public static void test() throws Exception {		
 		//Erstellen des Modells
 		classifier.buildClassifier(Filter.useFilter(data, filterTrain));
 		//Klassifizieren der Trainingsdaten
-		for(Instance instance : Filter.useFilter(data, filterTest)) {
+		Instances testData = Filter.useFilter(data, filterTest);
+		for(Instance instance : testData) {
 			double result = classifier.classifyInstance(instance);
 			String klasse = ""+result;
 			if(instance.classAttribute().isNominal()) klasse = instance.classAttribute().value((int) result);

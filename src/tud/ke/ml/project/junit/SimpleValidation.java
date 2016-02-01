@@ -46,9 +46,9 @@ public class SimpleValidation {
 		wekaClassifier = new IBk();
 
 		filterTrain = new RemovePercentage();
-		filterTrain.setPercentage(90);
+		filterTrain.setPercentage(AdvancedValidation.testSplitPercentage);
 		filterTest = new RemovePercentage();
-		filterTest.setPercentage(10);	
+		filterTest.setPercentage(AdvancedValidation.testSplitPercentage);	
 		filterTest.setInvertSelection(true);
 	}
 
@@ -121,9 +121,7 @@ public class SimpleValidation {
 			wekaClassifier.buildClassifier(train);
 			Instances test = Filter.useFilter(instances, filterTest);
 			for(Instance instance : test) {
-				double myClass = classifier.classifyInstance(instance);
-				double wekaClass = wekaClassifier.classifyInstance(instance);
-				assertEquals("Instance: ["+instance.toString()+"] classified differently: ",wekaClass,myClass,0);
+				AdvancedValidation.comparePredictions(classifier, wekaClassifier, instance);
 			}
 		}
 	}
@@ -155,9 +153,7 @@ public class SimpleValidation {
 			wekaClassifier.buildClassifier(train);
 			Instances test = Filter.useFilter(instances, filterTest);
 			for(Instance instance : test) {
-				double myClass = classifier.classifyInstance(instance);
-				double wekaClass = wekaClassifier.classifyInstance(instance);
-				assertEquals("Instance: ["+instance.toString()+"] classified differently: ",wekaClass,myClass,0);
+				AdvancedValidation.comparePredictions(classifier, wekaClassifier, instance);
 			}
 		}
 	}
@@ -189,9 +185,7 @@ public class SimpleValidation {
 			wekaClassifier.buildClassifier(train);
 			Instances test = Filter.useFilter(instances, filterTest);
 			for(Instance instance : test) {
-				double myClass = classifier.classifyInstance(instance);
-				double wekaClass = wekaClassifier.classifyInstance(instance);
-				assertEquals("Instance: ["+instance.toString()+"] classified differently: ",wekaClass,myClass,0);
+				AdvancedValidation.comparePredictions(classifier, wekaClassifier, instance);
 			}
 		}
 	}
@@ -225,9 +219,7 @@ public class SimpleValidation {
 			wekaClassifier.buildClassifier(train);
 			Instances test = Filter.useFilter(instances, filterTest);
 			for(Instance instance : test) {
-				double myClass = classifier.classifyInstance(instance);
-				double wekaClass = wekaClassifier.classifyInstance(instance);
-				assertEquals("Instance: ["+instance.toString()+"] classified differently: ",wekaClass,myClass,0);
+				AdvancedValidation.comparePredictions(classifier, wekaClassifier, instance);
 			}
 		}
 	}
