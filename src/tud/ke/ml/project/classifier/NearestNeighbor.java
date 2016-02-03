@@ -1,6 +1,7 @@
 package tud.ke.ml.project.classifier;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -45,6 +46,24 @@ public class NearestNeighbor extends ANearestNeighbor implements Serializable {
 	@Override
 	protected void learnModel(List<List<Object>> data) {
 		this.trainingsData = data;
+
+		if (isNormalizing()) {
+			double[][] normalizationArray = normalizationScaling();
+			scaling = normalizationArray[1];
+			translation = normalizationArray[0];
+
+			Iterator<List<Object>> it = trainingsData.iterator();
+			while (it.hasNext()) {
+				List<Object> neighbour = it.next();
+				for (int i = 0; i < neighbour.size(); i++) {
+					Object attribute = neighbour.get(i);
+					if (attribute instanceof Double) {
+						double vNormalized = ((double) attribute - translation[i]) / scaling[i];
+						neighbour.set(i, vNormalized);
+					}
+				}
+			}
+		}
 	}
 
 	protected Map<Object, Double> getUnweightedVotes(List<Pair<List<Object>, Double>> subset) {
@@ -110,16 +129,14 @@ public class NearestNeighbor extends ANearestNeighbor implements Serializable {
 	protected List<Pair<List<Object>, Double>> getNearest(List<Object> data) {
 		List<Pair<List<Object>, Double>> distances = new LinkedList<Pair<List<Object>, Double>>();
 
-		if (isNormalizing()) {
-			double[][] normalizationArray = normalizationScaling();
-			scaling = normalizationArray[1];
-			translation = normalizationArray[0];
+		List<Object> ndata = data;
 
+		if (isNormalizing()) {
 			for (int i = 0; i < data.size(); i++) {
 				Object attribute = data.get(i);
 				if (attribute instanceof Double) {
 					double vNormalized = ((double) attribute - translation[i]) / scaling[i];
-					data.set(i, vNormalized);
+					ndata.set(i, vNormalized);
 				}
 			}
 		}
@@ -128,21 +145,11 @@ public class NearestNeighbor extends ANearestNeighbor implements Serializable {
 		while (it.hasNext()) {
 			List<Object> neighbour = it.next();
 
-			if (isNormalizing()) {
-				for (int i = 0; i < neighbour.size(); i++) {
-					Object attribute = neighbour.get(i);
-					if (attribute instanceof Double) {
-						double vNormalized = ((double) attribute - translation[i]) / scaling[i];
-						neighbour.set(i, vNormalized);
-					}
-				}
-			}
-
 			Pair<List<Object>, Double> neighbourPair;
 			if (getMetric() == 1) {
-				neighbourPair = new Pair<List<Object>, Double>(neighbour, determineEuclideanDistance(data, neighbour));
+				neighbourPair = new Pair<List<Object>, Double>(neighbour, determineEuclideanDistance(ndata, neighbour));
 			} else {
-				neighbourPair = new Pair<List<Object>, Double>(neighbour, determineManhattanDistance(data, neighbour));
+				neighbourPair = new Pair<List<Object>, Double>(neighbour, determineManhattanDistance(ndata, neighbour));
 			}
 			distances.add(neighbourPair);
 		}
@@ -177,8 +184,6 @@ public class NearestNeighbor extends ANearestNeighbor implements Serializable {
 					distance += Math.abs((Double) attributeValue1 - (Double) attributeValue2);
 				} else if (attributeValue1 instanceof String) {
 					distance += attributeValue1.equals(attributeValue2) ? 0.0 : 1.0;
-				} else {
-					System.err.println("attribute not string or double");
 				}
 			}
 		}
@@ -209,38 +214,31 @@ public class NearestNeighbor extends ANearestNeighbor implements Serializable {
 	protected double[][] normalizationScaling() {
 		double[][] normalizationArray = new double[2][trainingsData.get(0).size()];
 
-		if (isNormalizing()) {
-			double[] minAttributes = new double[trainingsData.get(0).size()];
-			double[] maxAttributes = new double[trainingsData.get(0).size()];
+		for (int i = 0; i < normalizationArray[0].length; i++) {
+			double minAttribute = Double.POSITIVE_INFINITY;
+			double maxAttribute = Double.NEGATIVE_INFINITY;
 
 			for (int j = 0; j < this.trainingsData.size(); j++) {
-				List<Object> attributeList = this.trainingsData.get(j);
-				for (int i = 0; i < attributeList.size(); i++) {
-					Object attribute = attributeList.get(i);
-					if (attribute instanceof String) {
-						if (j == 0) {
-							minAttributes[i] = 0.0;
-							maxAttributes[i] = 1.0;
-						}
-					} else if (attribute instanceof Double) {
-						if (((double) attribute < minAttributes[i]) || (j == 0)) {
-							minAttributes[i] = (double) attribute;
-						} else if ((double) attribute > maxAttributes[i]) {
-							maxAttributes[i] = (double) attribute;
-						}
+				Object attribute = this.trainingsData.get(j).get(i);
+				if (attribute instanceof Double) {
+					if ((double) attribute < minAttribute) {
+						minAttribute = (double) attribute;
 					}
+					if ((double) attribute > maxAttribute) {
+						maxAttribute = (double) attribute;
+					}
+				} else if (attribute instanceof String) {
+					minAttribute = 0.0;
+					maxAttribute = 1.0;
 				}
 			}
 
-			for (int i = 0; i < minAttributes.length; i++) {
-				normalizationArray[0][i] = minAttributes[i];
-				normalizationArray[1][i] = maxAttributes[i] - minAttributes[i];
-				if (normalizationArray[1][i] == 0.0) {
-					normalizationArray[1][i] = 1.0;
-				}
+			normalizationArray[0][i] = minAttribute;
+			normalizationArray[1][i] = maxAttribute - minAttribute;
+			if (normalizationArray[1][i] == 0.0) {
+				normalizationArray[1][i] = 1.0;
 			}
 		}
 		return normalizationArray;
 	}
-
 }
