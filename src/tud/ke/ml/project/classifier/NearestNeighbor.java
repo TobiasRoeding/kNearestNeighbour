@@ -112,32 +112,13 @@ public class NearestNeighbor extends ANearestNeighbor implements Serializable {
 
 		if (isNormalizing()) {
 			double[][] normalizationArray = normalizationScaling();
-			scaling = new double[normalizationArray[0].length];
-			translation = new double[normalizationArray[0].length];
-			for (int i = 0; i < normalizationArray[0].length; i++) {
-				translation[i] = normalizationArray[0][i];
-				scaling[i] = normalizationArray[1][i];
-			}
-			
-			for (int i = 0; i < data.size(); i++) {
-				Object attribute = data.get(i);
-				if (attribute instanceof Double) {
-					if ((double) attribute - translation[i] < 0) {	
-						scaling[i] = scaling[i] + translation[i] - (double) attribute;
-						translation[i] = (double) attribute;
-					} else if ((((double) attribute - translation[i]) / scaling[i]) > 1) {
-						scaling[i] = (double) attribute - translation[i];
-					}
-				}
-			}
+			scaling = normalizationArray[1];
+			translation = normalizationArray[0];
 
 			for (int i = 0; i < data.size(); i++) {
 				Object attribute = data.get(i);
 				if (attribute instanceof Double) {
-					double vNormalized = ((double) attribute - translation[i]);
-					if (scaling[i] != 0.0) {
-						vNormalized /= scaling[i];
-					}
+					double vNormalized = ((double) attribute - translation[i]) / scaling[i];
 					data.set(i, vNormalized);
 				}
 			}
@@ -151,10 +132,7 @@ public class NearestNeighbor extends ANearestNeighbor implements Serializable {
 				for (int i = 0; i < neighbour.size(); i++) {
 					Object attribute = neighbour.get(i);
 					if (attribute instanceof Double) {
-						double vNormalized = ((double) attribute - translation[i]);
-						if (scaling[i] != 0.0) {
-							vNormalized /= scaling[i];
-						}
+						double vNormalized = ((double) attribute - translation[i]) / scaling[i];
 						neighbour.set(i, vNormalized);
 					}
 				}
@@ -257,11 +235,9 @@ public class NearestNeighbor extends ANearestNeighbor implements Serializable {
 			for (int i = 0; i < minAttributes.length; i++) {
 				normalizationArray[0][i] = minAttributes[i];
 				normalizationArray[1][i] = maxAttributes[i] - minAttributes[i];
-			}
-		} else {
-			for (int i = 0; i < this.trainingsData.get(0).size(); i++) {
-				normalizationArray[0][i] = 0;
-				normalizationArray[1][i] = 1;
+				if (normalizationArray[1][i] == 0.0) {
+					normalizationArray[1][i] = 1.0;
+				}
 			}
 		}
 		return normalizationArray;
