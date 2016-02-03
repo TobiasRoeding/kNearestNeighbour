@@ -215,6 +215,7 @@ public class NearestNeighbor extends ANearestNeighbor implements Serializable {
 		};
 		
 		distances.sort(cd);
+		int size = distances.size();
 		
 		List<Pair<List<Object>, Double>> kNeighbours = new LinkedList<Pair<List<Object>, Double>>();
 		for (int i = 0; i < distances.size(); i++) {
@@ -224,7 +225,7 @@ public class NearestNeighbor extends ANearestNeighbor implements Serializable {
 				kNeighbours.add(neighbour);
 			} else {
 				Pair<List<Object>, Double> lastNeighbour = distances.get(i - 1);
-				if (neighbour.getB() == lastNeighbour.getB()) {
+				if (Double.compare(neighbour.getB(),lastNeighbour.getB()) == 0) {
 					kNeighbours.add(neighbour);
 				} else {
 					break;
