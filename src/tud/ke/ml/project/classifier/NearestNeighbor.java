@@ -32,6 +32,7 @@ public class NearestNeighbor extends ANearestNeighbor implements Serializable {
 	protected double[] scaling;
 	protected double[] translation;
 	List<List<Object>> trainingsData;
+	List<Pair<Object, Integer>> majorityList;
 
 	@Deprecated
 	protected String[] getMatrikelNumbers() {
@@ -64,6 +65,38 @@ public class NearestNeighbor extends ANearestNeighbor implements Serializable {
 				}
 			}
 		}
+
+		this.majorityList = new ArrayList<Pair<Object, Integer>>();
+		HashMap<Object, Integer> majorityMap = new HashMap<Object, Integer>();
+		Iterator<List<Object>> it = trainingsData.iterator();
+		while (it.hasNext()) {
+			List<Object> instance = it.next();
+			Object classAttribute = instance.get(getClassAttribute());
+			if (majorityMap.containsKey(classAttribute)) {
+				Integer count = majorityMap.get(classAttribute);
+				majorityMap.put(classAttribute, count + 1);
+			} else {
+				majorityMap.put(classAttribute, 1);
+			}
+		}
+
+		Comparator<Pair<Object, Integer>> cd = new Comparator<Pair<Object, Integer>>() {
+			@Override
+			public int compare(Pair<Object, Integer> o1, Pair<Object, Integer> o2) {
+				return -Integer.compare(o1.getB(), o2.getB());
+			}
+		};
+
+		Set<Object> keys = majorityMap.keySet();
+		Iterator<Object> keyIterator = keys.iterator();
+		while (keyIterator.hasNext()) {
+			Object key = keyIterator.next();
+			Integer count = majorityMap.get(key);
+			majorityList.add(new Pair<Object, Integer>(key, count));
+		}
+
+		majorityList.sort(cd);
+
 	}
 
 	protected Map<Object, Double> getUnweightedVotes(List<Pair<List<Object>, Double>> subset) {
@@ -111,6 +144,25 @@ public class NearestNeighbor extends ANearestNeighbor implements Serializable {
 			if (vote > highestVote) {
 				predictedClass = key;
 				highestVote = vote;
+			}
+		}
+
+		List<Object> winners = new ArrayList<Object>();
+		votesIterator = keys.iterator();
+		while (votesIterator.hasNext()) {
+			Object key = votesIterator.next();
+			double vote = votes.get(key);
+			if (vote == highestVote) {
+				winners.add(key);
+			}
+		}
+
+		Iterator<Pair<Object, Integer>> mlit = majorityList.iterator();
+		while (mlit.hasNext()) {
+			Pair<Object, Integer> classCount = mlit.next();
+			if (winners.contains(classCount.getA())) {
+				predictedClass = classCount.getA();
+				break;
 			}
 		}
 		return predictedClass;
@@ -161,11 +213,23 @@ public class NearestNeighbor extends ANearestNeighbor implements Serializable {
 				return Double.compare(o1.getB(), o2.getB());
 			}
 		};
+		
 		distances.sort(cd);
+		
 		List<Pair<List<Object>, Double>> kNeighbours = new LinkedList<Pair<List<Object>, Double>>();
-		Iterator<Pair<List<Object>, Double>> distanceIterator = distances.iterator();
-		while (distanceIterator.hasNext() && k != 0) {
-			kNeighbours.add(distanceIterator.next());
+		for (int i = 0; i < distances.size(); i++) {
+			Pair<List<Object>, Double> neighbour = distances.get(i);
+
+			if (k > 0) {
+				kNeighbours.add(neighbour);
+			} else {
+				Pair<List<Object>, Double> lastNeighbour = distances.get(i - 1);
+				if (neighbour.getB() == lastNeighbour.getB()) {
+					kNeighbours.add(neighbour);
+				} else {
+					break;
+				}
+			}
 			k--;
 		}
 
